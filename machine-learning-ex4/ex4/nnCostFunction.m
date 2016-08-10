@@ -63,20 +63,35 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 K = size(unique(y));
-y_2 = zeros(m,K);
+y_matrix = zeros(m, K);
 for i = 1:K
-  y_2(:,i) = (y == i);
+  y_matrix(:,i) = (y == i);
 end
 
-h1 = sigmoid([ones(m, 1) X] * Theta1');
-h = sigmoid([ones(m, 1) h1] * Theta2');
+a1 = [ones(m, 1) X];
+z2 = a1 * Theta1';
+a2 = [ones(m, 1) sigmoid(z2)];
+z3 = a2 * Theta2';
+a3 = sigmoid(z3);
+h = a3;
 
-J = (1/m)*sum(sum(-(y_2 .* log(h)) - ((1 - y_2) .* log(1 - h))));
+J = (1/m)*sum(sum(-(y_matrix .* log(h)) - ((1 - y_matrix) .* log(1 - h))));
 
 J = J + (lambda/(2*m))*(sum(sum(Theta1(:,2:end).^2)) + sum(sum(Theta2(:,2:end).^2)));
 
 
+d3 = a3 - y_matrix;
+d3 = d3';
+d2 = ((Theta2'(2:end,:))*d3) .* sigmoidGradient(z2');
 
+bigDel1 = d2*a1;
+bigDel2 = d3*a2;
+
+Theta1_grad = bigDel1 / m;
+Theta2_grad = bigDel2 / m;
+
+Theta1_grad(:,2:end) = Theta1_grad(:,2:end) + (lambda/m)*Theta1(:,2:end);
+Theta2_grad(:,2:end) = Theta2_grad(:,2:end) + (lambda/m)*Theta2(:,2:end);
 
 % -------------------------------------------------------------
 
